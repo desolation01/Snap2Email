@@ -136,12 +136,12 @@ export function Trips() {
 
       <div className="mb-4 flex flex-col gap-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search driver, helper, plate, Transportify ID, phone, address, items…"
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="w-full rounded-lg border border-edge bg-card py-2 pl-9 pr-3 text-sm shadow-card placeholder:text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
           />
         </div>
 
@@ -171,9 +171,9 @@ export function Trips() {
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </Select>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700" />
-          <span className="text-xs text-slate-400">to</span>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-700" />
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="rounded-lg border border-edge bg-card px-2.5 py-1.5 text-xs text-ink-soft" />
+          <span className="text-xs text-muted">to</span>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="rounded-lg border border-edge bg-card px-2.5 py-1.5 text-xs text-ink-soft" />
           <div className="ml-auto flex items-center gap-2">
             <Select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)} className="w-32 py-1.5 text-xs">
               {sortOptions.map((o) => (
@@ -182,7 +182,7 @@ export function Trips() {
             </Select>
             <button
               onClick={() => setSortAsc((v) => !v)}
-              className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-edge bg-card px-2.5 py-1.5 text-xs font-medium text-ink-soft hover:bg-card-soft"
               title="Toggle sort direction"
             >
               {sortAsc ? "Asc ↑" : "Desc ↓"}
@@ -191,15 +191,15 @@ export function Trips() {
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-        <span>Gross total: <strong className="text-slate-800">{peso0(grossTotal)}</strong></span>
-        <span>Profit total: <strong className={profitTotal >= 0 ? "text-emerald-600" : "text-red-600"}>{peso0(profitTotal)}</strong></span>
+      <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-muted">
+        <span>Gross total: <strong className="text-ink">{peso0(grossTotal)}</strong></span>
+        <span>Profit total: <strong className={profitTotal >= 0 ? "text-emerald-400" : "text-red-400"}>{peso0(profitTotal)}</strong></span>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-edge bg-card shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-slate-50">
+            <thead className="bg-card-soft">
               <tr>
                 <Th>Date & Time</Th>
                 <Th>Transportify</Th>
@@ -213,7 +213,7 @@ export function Trips() {
                 <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-edge/70">
               {filtered.slice(0, 200).map(({ trip: t }) => {
                 const driver = data.employees.find((e) => e.id === t.driver_id);
                 const helpers = t.helper_ids
@@ -222,33 +222,33 @@ export function Trips() {
                 const vehicle = data.vehicles.find((v) => v.id === t.vehicle_id);
                 const profit = t.gross - t.total_expense;
                 return (
-                  <tr key={t.id} className="hover:bg-slate-50">
+                  <tr key={t.id} className="hover:bg-card-soft">
                     <Td>{fmtDateTime(t.date_time)}</Td>
                     <Td>
-                      <span className="font-medium text-blue-600">{t.transportify_id}</span>
+                      <span className="font-medium text-brand">{t.transportify_id}</span>
                     </Td>
                     <Td className="font-medium">{driver?.name ?? "—"}</Td>
-                    <Td className="text-slate-500">{helpers.join(", ") || "—"}</Td>
+                    <Td className="text-muted">{helpers.join(", ") || "—"}</Td>
                     <Td>
                       <span className="font-medium">{vehicle?.plate_number ?? "—"}</span>
-                      <span className="ml-1 text-xs text-slate-400">{vehicle?.type}</span>
+                      <span className="ml-1 text-xs text-muted">{vehicle?.type}</span>
                     </Td>
                     <Td>{peso0(t.gross)}</Td>
-                    <Td className="text-red-600">-{peso0(t.total_expense)}</Td>
-                    <Td className={cx("font-semibold", profit >= 0 ? "text-emerald-600" : "text-red-600")}>{peso0(profit)}</Td>
+                    <Td className="text-red-400">-{peso0(t.total_expense)}</Td>
+                    <Td className={cx("font-semibold", profit >= 0 ? "text-emerald-400" : "text-red-400")}>{peso0(profit)}</Td>
                     <Td><Badge tone={statusTone(t.status)}>{t.status}</Badge></Td>
                     <Td className="text-right">
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => { setEditing(t); setFormOpen(true); }}
-                          className="rounded p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
+                          className="rounded p-1.5 text-muted hover:bg-brand-soft hover:text-brand"
                           title="Edit"
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => setConfirmDelete(t)}
-                          className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                          className="rounded p-1.5 text-muted hover:bg-red-500/10 hover:text-red-400"
                           title="Delete"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -272,10 +272,10 @@ export function Trips() {
       <TripForm open={formOpen} onClose={() => setFormOpen(false)} initial={editing} />
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-800">Delete trip?</h3>
-            <p className="mt-1 text-sm text-slate-500">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-card-hover">
+            <h3 className="text-base font-semibold text-ink">Delete trip?</h3>
+            <p className="mt-1 text-sm text-muted">
               Delete {confirmDelete.transportify_id} by{" "}
               {data.employees.find((e) => e.id === confirmDelete.driver_id)?.name}? This affects payroll records.
             </p>

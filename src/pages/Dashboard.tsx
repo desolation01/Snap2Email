@@ -16,7 +16,8 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { TrendingDown, TrendingUp, Truck, Wallet, Coins } from "lucide-react";
+import { subDays, differenceInCalendarDays } from "date-fns";
+import { TrendingDown, TrendingUp, Truck, Wallet, Coins, ArrowRight, Clock3, XCircle, CheckCircle } from "lucide-react";
 import { useStore } from "../lib/store";
 import {
   buildSeries,
@@ -28,12 +29,15 @@ import {
   tripsInRange,
   vehicleBreakdown,
   type QuickRange,
+  type Range,
 } from "../lib/analytics";
-import { Card, Select, cx } from "../components/ui";
-import { peso, peso0 } from "../lib/format";
+import { Card, Delta, Select, Sparkline, cx, statusTone, Badge } from "../components/ui";
+import { peso, peso0, fmtTime } from "../lib/format";
 import type { PageKey } from "../components/Layout";
 
-const COLORS = ["#2563eb", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4"];
+const COLORS = ["#fbbf24", "#38bdf8", "#34d399", "#a78bfa", "#f472b6", "#94a3b8"];
+const GRID_STROKE = "rgba(42, 49, 66, 0.55)";
+const TICK_FILL = "#64748b";
 
 const rangeOptions: Array<{ key: QuickRange; label: string }> = [
   { key: "today", label: "Today" },
@@ -43,6 +47,11 @@ const rangeOptions: Array<{ key: QuickRange; label: string }> = [
   { key: "year", label: "This Year" },
 ];
 
+function prevRange(range: Range): Range {
+  const days = differenceInCalendarDays(range.end, range.start) + 1;
+  return { start: subDays(range.start, days), end: subDays(range.start, 1), label: `Prev ${range.label}` };
+}
+
 export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) {
   const data = useStore();
   const [quick, setQuick] = useState<QuickRange>("month");
@@ -50,6 +59,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
   const [driverFilter, setDriverFilter] = useState("");
 
   const range = rangeFor(quick);
+  const pRange = prevRange(range);
 
   const filteredTrips = useMemo(
     () =>
@@ -61,41 +71,58 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
       }),
     [data, range, vehicleFilter, driverFilter]
   );
+  const prevFiltered = useMemo(
+    () =>
+      tripsInRange(data, pRange).filter((t) => {
+        if (vehicleFilter && data.vehicles.find((v) => v.id === t.vehicle_id)?.type !== vehicleFilter)
+          return false;
+        if (driverFilter && t.driver_id !== driverFilter) return false;
+        return true;
+      }),
+    [data, pRange, vehicleFilter, driverFilter]
+  );
 
   const kpis = useMemo(() => computeKpis(filteredTrips), [filteredTrips]);
+  const prevKpis = useMemo(() => computeKpis(prevFiltered), [prevFiltered]);
   const granularity = pickGranularity(range);
   const series = useMemo(() => buildSeries(filteredTrips, range, granularity), [filteredTrips, range, granularity]);
   const vBreakdown = useMemo(() => vehicleBreakdown(filteredTrips, data), [filteredTrips, data]);
   const eBreakdown = useMemo(() => expenseBreakdown(filteredTrips), [filteredTrips]);
   const leaders = useMemo(() => driverLeaders(filteredTrips, data), [filteredTrips, data]);
 
+  const pct = (cur: number, prev: number): number | null => (prev === 0 ? null : ((cur - prev) / prev) * 100);
+
   const chartTooltip = (formatter: (v: number) => string) => ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
-      <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-        <p className="mb-1 font-medium text-slate-700">{label}</p>
+      <div className="rounded-md border border-edge bg-card px-3 py-2 text-xs shadow-card-hover">
+        <p className="mb-1 font-medium text-ink">{label}</p>
         {payload.map((p: any) => (
           <p key={p.dataKey} className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full" style={{ background: p.color ?? p.fill }} />
-            <span className="capitalize text-slate-500">{String(p.name).replace("_", " ")}:</span>
-            <span className="font-medium text-slate-800">{formatter(p.value)}</span>
+            <span className="capitalize text-muted">{String(p.name).replace("_", " ")}:</span>
+            <span className="tnum font-medium text-ink">{formatter(p.value)}</span>
           </p>
         ))}
       </div>
     );
   };
 
+  const axisProps = { tick: { fontSize: 11, fill: TICK_FILL }, tickLine: false, axisLine: false } as const;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1 rounded-md border border-edge bg-card p-1 shadow-card">
           {rangeOptions.map((o) => (
             <button
               key={o.key}
               onClick={() => setQuick(o.key)}
               className={cx(
-                "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                quick === o.key ? "bg-blue-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                "tnum rounded px-3 py-1.5 text-xs font-medium transition-all duration-150",
+                quick === o.key
+                  ? "bg-brand text-on-brand shadow-glow"
+                  : "text-ink-soft hover:bg-ink/5 hover:text-ink"
               )}
             >
               {o.label}
@@ -118,30 +145,59 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard icon={<Coins className="h-5 w-5" />} label="Total Gross" value={peso0(kpis.gross)} tone="blue" />
-        <KpiCard icon={<Wallet className="h-5 w-5" />} label="Total Expense" value={peso0(kpis.expense)} tone="amber" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          icon={<Coins className="h-5 w-5" />}
+          label="Total Gross"
+          value={peso0(kpis.gross)}
+          tone="green"
+          delta={pct(kpis.gross, prevKpis.gross)}
+          spark={series.map((s) => s.gross)}
+          sparkColor="#34d399"
+        />
+        <KpiCard
+          icon={<Wallet className="h-5 w-5" />}
+          label="Total Expense"
+          value={peso0(kpis.expense)}
+          delta={pct(kpis.expense, prevKpis.expense)}
+          spark={series.map((s) => s.expense)}
+          sparkColor="#f87171"
+          tone="red"
+        />
         <KpiCard
           icon={kpis.profit >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
           label="Total Profit"
           value={peso0(kpis.profit)}
-          tone={kpis.profit >= 0 ? "green" : "red"}
+          tone="green"
+          delta={pct(kpis.profit, prevKpis.profit)}
+          spark={series.map((s) => s.profit)}
+          sparkColor="#2dd4bf"
+          sub={`${kpis.avgProfit >= 0 ? "avg" : "avg"} ${peso0(kpis.avgProfit)} / trip`}
         />
-        <KpiCard icon={<Truck className="h-5 w-5" />} label="Total Trips" value={String(kpis.trips)} tone="violet" sub={`${kpis.cancelled} cancelled`} />
+        <KpiCard
+          icon={<Truck className="h-5 w-5" />}
+          label="Total Trips"
+          value={String(kpis.trips)}
+          delta={pct(kpis.trips, prevKpis.trips)}
+          spark={series.map((s) => s.trips)}
+          sparkColor="#38bdf8"
+          tone="cyan"
+          sub={`${kpis.cancelled} cancelled`}
+        />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2" title="Income vs Expense" subtitle={range.label}>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} tickFormatter={(v) => `₱${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`} />
-                <Tooltip content={chartTooltip((v) => peso(v))} cursor={{ fill: "#f1f5f9" }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID_STROKE} />
+                <XAxis dataKey="label" {...axisProps} />
+                <YAxis {...axisProps} tickFormatter={(v) => `₱${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`} />
+                <Tooltip content={chartTooltip((v) => peso(v))} cursor={{ fill: "rgba(148,163,184,0.08)" }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="gross" name="Income" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={28} />
-                <Bar dataKey="expense" name="Expense" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="gross" name="Income" fill="#34d399" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                <Bar dataKey="expense" name="Expense" fill="#f87171" radius={[3, 3, 0, 0]} maxBarSize={28} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -151,7 +207,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={vBreakdown} dataKey="gross" nameKey="type" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                <Pie data={vBreakdown} dataKey="gross" nameKey="type" innerRadius={52} outerRadius={80} paddingAngle={3} strokeWidth={0}>
                   {vBreakdown.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
@@ -163,14 +219,14 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           <div className="mt-2 space-y-1.5">
             {vBreakdown.map((v, i) => (
               <div key={v.type} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 text-slate-600">
+                <span className="flex items-center gap-2 text-ink-soft">
                   <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLORS[i % COLORS.length] }} />
                   {v.type}
                 </span>
-                <span className="font-medium text-slate-800">{peso0(v.gross)}</span>
+                <span className="tnum font-medium text-ink">{peso0(v.gross)}</span>
               </div>
             ))}
-            {vBreakdown.length === 0 && <p className="text-center text-xs text-slate-400">No data</p>}
+            {vBreakdown.length === 0 && <p className="text-center text-xs text-muted">No data</p>}
           </div>
         </Card>
 
@@ -180,15 +236,15 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
               <AreaChart data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                 <defs>
                   <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#2dd4bf" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} tickFormatter={(v) => `₱${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID_STROKE} />
+                <XAxis dataKey="label" {...axisProps} />
+                <YAxis {...axisProps} tickFormatter={(v) => `₱${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`} />
                 <Tooltip content={chartTooltip((v) => peso(v))} />
-                <Area type="monotone" dataKey="profit" name="Profit" stroke="#10b981" strokeWidth={2} fill="url(#profitGrad)" />
+                <Area type="monotone" dataKey="profit" name="Profit" stroke="#2dd4bf" strokeWidth={2} fill="url(#profitGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -198,7 +254,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={eBreakdown} dataKey="amount" nameKey="category" innerRadius={50} outerRadius={80} paddingAngle={2}>
+                <Pie data={eBreakdown} dataKey="amount" nameKey="category" innerRadius={52} outerRadius={80} paddingAngle={3} strokeWidth={0}>
                   {eBreakdown.map((_, i) => (
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
@@ -210,14 +266,14 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           <div className="mt-2 space-y-1.5">
             {eBreakdown.map((e, i) => (
               <div key={e.category} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 text-slate-600">
+                <span className="flex items-center gap-2 text-ink-soft">
                   <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLORS[i % COLORS.length] }} />
                   {e.category}
                 </span>
-                <span className="font-medium text-slate-800">{peso0(e.amount)}</span>
+                <span className="tnum font-medium text-ink">{peso0(e.amount)}</span>
               </div>
             ))}
-            {eBreakdown.length === 0 && <p className="text-center text-xs text-slate-400">No expenses</p>}
+            {eBreakdown.length === 0 && <p className="text-center text-xs text-muted">No expenses</p>}
           </div>
         </Card>
 
@@ -225,11 +281,11 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={series} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={GRID_STROKE} />
+                <XAxis dataKey="label" {...axisProps} />
+                <YAxis {...axisProps} allowDecimals={false} />
                 <Tooltip content={chartTooltip((v) => String(v))} />
-                <Line type="monotone" dataKey="trips" name="Trips" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="trips" name="Trips" stroke="#38bdf8" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -239,28 +295,70 @@ export function Dashboard({ onNavigate }: { onNavigate: (p: PageKey) => void }) 
           title="Top Drivers"
           subtitle="By profit generated"
           actions={
-            <button onClick={() => onNavigate("payroll")} className="text-xs font-medium text-blue-600 hover:underline">
-              Payroll →
+            <button onClick={() => onNavigate("payroll")} className="flex items-center gap-1 text-xs font-medium text-amber-400 hover:underline">
+              Payroll <ArrowRight className="h-3 w-3" />
             </button>
           }
         >
           <div className="space-y-3">
             {leaders.slice(0, 6).map((d, i) => (
               <div key={d.id} className="flex items-center gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-600">
+                <span
+                  className={cx(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-md font-display text-[11px] font-bold",
+                    i === 0 ? "bg-brand text-on-brand" : "bg-ink/5 text-ink-soft"
+                  )}
+                >
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-700">{d.name}</p>
-                  <p className="text-[11px] text-slate-400">{d.trips} trips · {peso0(d.gross)} gross</p>
+                  <p className="truncate text-sm font-medium text-ink">{d.name}</p>
+                  <p className="tnum text-[11px] text-muted">{d.trips} trips · {peso0(d.gross)} gross</p>
                 </div>
-                <span className={cx("text-sm font-semibold", d.profit >= 0 ? "text-emerald-600" : "text-red-600")}>
+                <span className={cx("tnum text-sm font-semibold", d.profit >= 0 ? "text-emerald-400" : "text-red-400")}>
                   {peso0(d.profit)}
                 </span>
               </div>
             ))}
-            {leaders.length === 0 && <p className="py-6 text-center text-xs text-slate-400">No trip data in range</p>}
+            {leaders.length === 0 && <p className="py-6 text-center text-xs text-muted">No trip data in range</p>}
           </div>
+        </Card>
+
+        <Card
+          title="Active & Delayed"
+          subtitle="Non-completed trips in period"
+          className="lg:col-span-3"
+        >
+          {filteredTrips.filter((t) => t.status !== "completed").length === 0 ? (
+            <p className="flex items-center gap-2 py-6 text-center text-xs text-muted">
+              <CheckCircle className="h-4 w-4 text-emerald-500" /> All trips completed in this period.
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredTrips
+                .filter((t) => t.status !== "completed")
+                .slice(0, 9)
+                .map((t) => {
+                  const driver = data.employees.find((e) => e.id === t.driver_id);
+                  return (
+                    <div key={t.id} className="flex items-center gap-3 rounded-md border border-edge/70 bg-card-soft px-3 py-2.5">
+                      {t.status === "cancelled" ? (
+                        <XCircle className="h-4 w-4 shrink-0 text-red-500" />
+                      ) : (
+                        <Clock3 className="h-4 w-4 shrink-0 text-amber-500" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="tnum truncate text-sm font-medium text-ink">{t.transportify_id}</p>
+                        <p className="truncate text-[11px] text-muted">
+                          {driver?.name ?? "—"} · {fmtTime(t.date_time)}
+                        </p>
+                      </div>
+                      <Badge tone={statusTone(t.status)} dot>{t.status}</Badge>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </Card>
       </div>
     </div>
@@ -271,32 +369,43 @@ function KpiCard({
   icon,
   label,
   value,
-  tone,
+  delta,
+  spark,
+  sparkColor,
+  tone = "amber",
   sub,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  tone: "blue" | "amber" | "green" | "red" | "violet";
+  delta?: number | null;
+  spark: number[];
+  sparkColor: string;
+  tone?: "amber" | "cyan" | "green" | "red";
   sub?: string;
 }) {
-  const tones = {
-    blue: "bg-blue-50 text-blue-600",
-    amber: "bg-amber-50 text-amber-600",
-    green: "bg-emerald-50 text-emerald-600",
-    red: "bg-red-50 text-red-600",
-    violet: "bg-violet-50 text-violet-600",
+  const iconTones = {
+    amber: "bg-amber-500/15 text-amber-400",
+    cyan: "bg-cyan-500/15 text-cyan-400",
+    green: "bg-emerald-500/15 text-emerald-400",
+    red: "bg-red-500/15 text-red-400",
   };
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className={cx("flex h-10 w-10 items-center justify-center rounded-lg", tones[tone])}>{icon}</div>
-        <div>
-          <p className="text-xs font-medium text-slate-500">{label}</p>
-          <p className="text-lg font-bold text-slate-900">{value}</p>
+    <div className="group rounded-lg border border-edge bg-card p-4 shadow-card transition-all duration-200 hover:border-edge-strong hover:shadow-card-hover">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className={cx("flex h-10 w-10 shrink-0 items-center justify-center rounded-md", iconTones[tone])}>{icon}</div>
+          <div className="min-w-0">
+            <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted">{label}</p>
+            <p className="tnum font-display text-xl font-bold tracking-tight text-ink">{value}</p>
+          </div>
         </div>
+        {delta !== undefined && delta !== null && <Delta value={delta} />}
       </div>
-      {sub && <p className="mt-2 text-[11px] text-slate-400">{sub}</p>}
+      <div className="mt-3">
+        <Sparkline data={spark} stroke={sparkColor} />
+      </div>
+      {sub && <p className="tnum mt-2 text-[11px] text-muted">{sub}</p>}
     </div>
   );
 }

@@ -135,9 +135,9 @@ export function TripForm({
   };
 
   const summaryRow = (label: string, value: string, cls?: string) => (
-    <div className="flex items-center justify-between border-t border-dashed border-slate-200 py-2 text-sm first:border-t-0">
-      <span className="text-slate-500">{label}</span>
-      <span className={cx("font-semibold text-slate-800", cls)}>{value}</span>
+    <div className="flex items-center justify-between border-t border-dashed border-edge py-2 text-sm first:border-t-0">
+      <span className="text-muted">{label}</span>
+      <span className={cx("font-semibold text-ink", cls)}>{value}</span>
     </div>
   );
 
@@ -155,7 +155,7 @@ export function TripForm({
       }
     >
       <form id="trip-form" onSubmit={submit}>
-        {error && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        {error && <div className="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Driver" required>
@@ -250,27 +250,27 @@ export function TripForm({
                   className={cx(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     helperIds.includes(h.id)
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-brand text-on-brand"
+                      : "bg-card-soft text-ink-soft hover:bg-edge"
                   )}
                 >
                   {h.name}
                 </button>
               ))}
-              {helpers.length === 0 && <span className="text-xs text-slate-400">No active helpers</span>}
+              {helpers.length === 0 && <span className="text-xs text-muted">No active helpers</span>}
             </div>
           </Field>
         </div>
 
         {helperIds.length > 1 && (
-          <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-2 text-xs font-medium text-slate-600">Helper commission split</p>
+          <div className="mt-4 rounded-lg border border-edge bg-card-soft p-3">
+            <p className="mb-2 text-xs font-medium text-ink-soft">Helper commission split</p>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-xs text-slate-600">
+              <label className="flex items-center gap-1.5 text-xs text-ink-soft">
                 <input type="radio" checked={helperSplit === "equal"} onChange={() => setHelperSplit("equal")} />
                 Split evenly
               </label>
-              <label className="flex items-center gap-1.5 text-xs text-slate-600">
+              <label className="flex items-center gap-1.5 text-xs text-ink-soft">
                 <input type="radio" checked={helperSplit === "custom"} onChange={() => setHelperSplit("custom")} />
                 Custom %
               </label>
@@ -291,7 +291,7 @@ export function TripForm({
                     </Field>
                   );
                 })}
-                <p className="col-span-full text-[11px] text-slate-400">
+                <p className="col-span-full text-[11px] text-muted">
                   Weights are normalized to a percentage share of the total helper commission.
                 </p>
               </div>
@@ -301,11 +301,11 @@ export function TripForm({
 
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-600">Itemized Expenses</p>
+            <p className="text-xs font-medium text-ink-soft">Itemized Expenses</p>
             <button
               type="button"
               onClick={() => setExpenses((prev) => [...prev, emptyExpense()])}
-              className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
             >
               <Plus className="h-3 w-3" /> Add expense
             </button>
@@ -342,7 +342,7 @@ export function TripForm({
                 <button
                   type="button"
                   onClick={() => setExpenses((prev) => prev.filter((x) => x.id !== e.id))}
-                  className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-500"
+                  className="rounded p-1.5 text-muted hover:bg-ink/5 hover:text-red-400"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -355,35 +355,35 @@ export function TripForm({
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Additional notes about this trip…" />
         </Field>
 
-        <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Computed Summary</p>
+        <div className="mt-5 rounded-2xl border border-edge bg-card-soft p-4">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">Computed Summary</p>
           {summaryRow("Gross", peso(grossNum))}
-          {summaryRow("Total expense", `-${peso(totalExpense)}`, "text-red-600")}
+          {summaryRow("Total expense", `-${peso(totalExpense)}`, "text-red-400")}
           {summaryRow(
             "Profit",
             peso(profit),
-            profit >= 0 ? "text-emerald-600" : "text-red-600"
+            profit >= 0 ? "text-emerald-400" : "text-red-400"
           )}
           {driverId && (
-            <div className="mt-2 rounded-lg bg-white p-2">
+            <div className="mt-2 rounded-lg bg-card p-2">
               {summaryRow(
                 `Driver commission (${driverComm.percentage}% of ${driverComm.basis})`,
                 peso(driverComm.total),
-                "text-blue-600"
+                "text-brand"
               )}
             </div>
           )}
           {helperIds.length > 0 && (
-            <div className="mt-2 rounded-lg bg-white p-2">
+            <div className="mt-2 rounded-lg bg-card p-2">
               {summaryRow(
                 `Helper commission (${helperComm.percentage}% of ${helperComm.basis})`,
                 peso(helperComm.total),
-                "text-violet-600"
+                "text-violet-400"
               )}
               {Object.entries(helperComm.perEmployee).map(([id, amt]) => {
                 const name = data.employees.find((e) => e.id === id)?.name ?? id;
                 return (
-                  <p key={id} className="text-[11px] text-slate-400">
+                  <p key={id} className="text-[11px] text-muted">
                     {name}: {peso(amt)}
                   </p>
                 );

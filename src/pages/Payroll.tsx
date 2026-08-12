@@ -119,46 +119,46 @@ export function Payroll() {
           <option value="trips">Sort: Trips</option>
           <option value="gross">Sort: Gross</option>
         </Select>
-        <div className="ml-auto rounded-xl bg-slate-800 px-4 py-2 text-right">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Total commissions · {monthLabel}</p>
-          <p className="text-lg font-bold text-white">{peso(totalCommissions)}</p>
+        <div className="ml-auto rounded-2xl bg-panel px-4 py-2 text-right">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-muted">Total commissions · {monthLabel}</p>
+          <p className="text-lg font-bold text-panel-ink-strong">{peso(totalCommissions)}</p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-edge bg-card shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-slate-50">
+            <thead className="bg-card-soft">
               <tr>
-                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">Employee</th>
-                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">Role</th>
-                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500">Trips</th>
-                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500">Gross Contributed</th>
-                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-500">Commission</th>
-                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">Breakdown</th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted">Employee</th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted">Role</th>
+                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted">Trips</th>
+                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted">Gross Contributed</th>
+                <th className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-muted">Commission</th>
+                <th className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-muted">Breakdown</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-edge/70">
               {rows.map((r) => (
-                <tr key={r.employeeId} className="hover:bg-slate-50">
-                  <td className="px-3 py-2.5 text-sm font-medium text-slate-800">{r.name}</td>
+                <tr key={r.employeeId} className="hover:bg-card-soft">
+                  <td className="px-3 py-2.5 text-sm font-medium text-ink">{r.name}</td>
                   <td className="px-3 py-2.5 text-sm">
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${r.role === "Driver" ? "bg-blue-50 text-blue-700" : "bg-violet-50 text-violet-700"}`}>{r.role}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${r.role === "Driver" ? "bg-blue-500/10 text-blue-300" : "bg-violet-500/10 text-violet-300"}`}>{r.role}</span>
                   </td>
-                  <td className="px-3 py-2.5 text-right text-sm text-slate-700">{r.trips}</td>
-                  <td className="px-3 py-2.5 text-right text-sm text-slate-700">{peso0(r.gross)}</td>
-                  <td className="px-3 py-2.5 text-right text-sm font-semibold text-violet-600">{peso0(r.commission)}</td>
+                  <td className="px-3 py-2.5 text-right text-sm text-ink-soft">{r.trips}</td>
+                  <td className="px-3 py-2.5 text-right text-sm text-ink-soft">{peso0(r.gross)}</td>
+                  <td className="px-3 py-2.5 text-right text-sm font-semibold text-violet-400">{peso0(r.commission)}</td>
                   <td className="px-3 py-2.5">
                     <details>
-                      <summary className="cursor-pointer text-xs font-medium text-blue-600 hover:underline">
+                      <summary className="cursor-pointer text-xs font-medium text-brand hover:underline">
                         View {r.entries.length} trips
                       </summary>
-                      <div className="mt-2 max-h-48 overflow-y-auto rounded-lg bg-slate-50 p-2">
+                      <div className="mt-2 max-h-48 overflow-y-auto rounded-lg bg-card-soft p-2">
                         {r.entries.slice().reverse().map((e, i) => (
                           <div key={i} className="flex items-center justify-between gap-3 px-1 py-1 text-[11px]">
-                            <span className="text-slate-600">{e.transportify} · {format(new Date(e.date), "MMM d")}</span>
-                            <span className="text-slate-500">gross {peso0(e.gross)}</span>
-                            <span className="font-medium text-violet-600">{peso0(e.amount)}</span>
+                            <span className="text-ink-soft">{e.transportify} · {format(new Date(e.date), "MMM d")}</span>
+                            <span className="text-muted">gross {peso0(e.gross)}</span>
+                            <span className="font-medium text-violet-400">{peso0(e.amount)}</span>
                           </div>
                         ))}
                       </div>

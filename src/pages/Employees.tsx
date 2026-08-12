@@ -42,7 +42,7 @@ export function Employees() {
             onClick={() => setTab(r)}
             className={cx(
               "rounded-lg px-3 py-1.5 text-xs font-medium capitalize",
-              tab === r ? "bg-blue-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+              tab === r ? "bg-brand text-on-brand" : "bg-card text-ink-soft ring-1 ring-edge hover:bg-card-soft"
             )}
           >
             {r === "all" ? "All" : roleLabels[r]}
@@ -50,10 +50,10 @@ export function Employees() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-edge bg-card shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-slate-50">
+            <thead className="bg-card-soft">
               <tr>
                 <Th>Name</Th>
                 <Th>Role</Th>
@@ -64,27 +64,27 @@ export function Employees() {
                 <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-edge/70">
               {employees.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
+                <tr key={e.id} className="hover:bg-card-soft">
                   <Td>
-                    <button onClick={() => setViewing(e)} className="font-medium text-blue-600 hover:underline">
+                    <button onClick={() => setViewing(e)} className="font-medium text-brand hover:underline">
                       {e.name}
                     </button>
                   </Td>
                   <Td><Badge tone={e.role === "driver" ? "blue" : e.role === "helper" ? "violet" : "slate"}>{roleLabels[e.role]}</Badge></Td>
                   <Td>{e.contact}</Td>
-                  <Td className="text-slate-500">{e.license_no ?? "—"}</Td>
+                  <Td className="text-muted">{e.license_no ?? "—"}</Td>
                   <Td>{fmtDate(e.hire_date)}</Td>
                   <Td>
                     <Badge tone={e.status === "active" ? "green" : "red"}>{e.status}</Badge>
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-1">
-                      <button onClick={() => { setEditing(e); setFormOpen(true); }} className="rounded p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600">
+                      <button onClick={() => { setEditing(e); setFormOpen(true); }} className="rounded p-1.5 text-muted hover:bg-brand-soft hover:text-brand">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setConfirmDelete(e)} className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600">
+                      <button onClick={() => setConfirmDelete(e)} className="rounded p-1.5 text-muted hover:bg-red-500/10 hover:text-red-400">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -108,14 +108,14 @@ export function Employees() {
             <Info label="Hired" value={fmtDate(viewing.hire_date)} />
           </div>
           {viewing.commission_override != null && (
-            <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            <p className="mb-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
               Commission override: {viewing.commission_override}%
             </p>
           )}
-          <h4 className="mb-2 text-sm font-semibold text-slate-700">Trip History ({tripsFor(viewing.id).length})</h4>
+          <h4 className="mb-2 text-sm font-semibold text-ink-soft">Trip History ({tripsFor(viewing.id).length})</h4>
           <div className="max-h-80 overflow-y-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-card-soft">
                 <tr>
                   <Th>Date</Th>
                   <Th>Transportify</Th>
@@ -125,7 +125,7 @@ export function Employees() {
                   <Th>Status</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-edge/70">
                 {tripsFor(viewing.id)
                   .sort((a, b) => b.date_time.localeCompare(a.date_time))
                   .slice(0, 50)
@@ -135,10 +135,10 @@ export function Employees() {
                     return (
                       <tr key={t.id}>
                         <Td>{fmtDate(t.date_time)}</Td>
-                        <Td className="text-blue-600">{t.transportify_id}</Td>
+                        <Td className="text-brand">{t.transportify_id}</Td>
                         <Td>{peso0(t.gross)}</Td>
-                        <Td className={cx("font-medium", t.gross - t.total_expense >= 0 ? "text-emerald-600" : "text-red-600")}>{peso0(t.gross - t.total_expense)}</Td>
-                        <Td className="text-violet-600">{peso0(commission)}</Td>
+                        <Td className={cx("font-medium", t.gross - t.total_expense >= 0 ? "text-emerald-400" : "text-red-400")}>{peso0(t.gross - t.total_expense)}</Td>
+                        <Td className="text-violet-400">{peso0(commission)}</Td>
                         <Td><Badge tone={t.status === "completed" ? "green" : t.status === "cancelled" ? "red" : t.status === "scheduled" ? "blue" : "amber"}>{t.status}</Badge></Td>
                       </tr>
                     );
@@ -150,10 +150,10 @@ export function Employees() {
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-800">Delete employee?</h3>
-            <p className="mt-1 text-sm text-slate-500">{confirmDelete.name} will be removed.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-card-hover">
+            <h3 className="text-base font-semibold text-ink">Delete employee?</h3>
+            <p className="mt-1 text-sm text-muted">{confirmDelete.name} will be removed.</p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setConfirmDelete(undefined)}>Cancel</Button>
               <Button variant="danger" onClick={() => { employeeActions.remove(confirmDelete.id); setConfirmDelete(undefined); }}>Delete</Button>
@@ -168,8 +168,8 @@ export function Employees() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="text-sm font-medium text-slate-800">{value}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{label}</p>
+      <p className="text-sm font-medium text-ink">{value}</p>
     </div>
   );
 }
@@ -229,7 +229,7 @@ function EmployeeForm({
       }
     >
       <form id="emp-form" onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {error && <div className="col-span-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        {error && <div className="col-span-full rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
         <Field label="Full Name" required>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
         </Field>

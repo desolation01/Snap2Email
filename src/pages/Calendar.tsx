@@ -79,15 +79,15 @@ export function CalendarPage() {
     const { trips, profit } = daySummary(d);
     const inMonth = isSameMonth(d, monthStart) || view === "week";
     const isToday = isSameDay(d, new Date());
-    const tone = trips.length === 0 ? "bg-slate-50" : profit >= 0 ? "bg-emerald-50/70" : "bg-red-50/70";
-    const indicator = trips.length === 0 ? "bg-slate-300" : profit >= 0 ? "bg-emerald-500" : "bg-red-500";
+    const tone = trips.length === 0 ? "bg-card-soft" : profit >= 0 ? "bg-emerald-500/10" : "bg-red-500/10";
+    const indicator = trips.length === 0 ? "bg-muted" : profit >= 0 ? "bg-emerald-500" : "bg-red-500";
 
     return (
       <button
         key={d.toISOString()}
         onClick={() => setSelectedDay(d)}
         className={cx(
-          "flex min-h-[74px] flex-col gap-1 p-2 text-left transition-colors hover:bg-blue-50/50",
+          "flex min-h-[74px] flex-col gap-1 p-2 text-left transition-colors hover:bg-brand-soft/60",
           tone,
           !inMonth && "opacity-40"
         )}
@@ -96,20 +96,20 @@ export function CalendarPage() {
           <span
             className={cx(
               "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
-              isToday ? "bg-blue-600 text-white" : "text-slate-600"
+              isToday ? "bg-brand text-on-brand" : "text-ink-soft"
             )}
           >
             {format(d, "d")}
           </span>
           {trips.length > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-800 px-1.5 text-[10px] font-semibold text-white">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-panel px-1.5 text-[10px] font-semibold text-panel-ink-strong">
               {trips.length}
             </span>
           )}
         </div>
         {trips.length > 0 && (
           <div className="mt-auto">
-            <p className={cx("text-[11px] font-semibold", profit >= 0 ? "text-emerald-700" : "text-red-700")}>
+            <p className={cx("text-[11px] font-semibold", profit >= 0 ? "text-emerald-300" : "text-red-300")}>
               {peso0(profit)}
             </p>
           </div>
@@ -129,20 +129,20 @@ export function CalendarPage() {
           <Button variant="secondary" size="sm" onClick={() => setCursor(new Date())}>Today</Button>
           <Button variant="secondary" size="sm" onClick={() => nav(1)}><ChevronRight className="h-4 w-4" /></Button>
         </div>
-        <h2 className="text-lg font-bold text-slate-900">
+        <h2 className="text-lg font-bold text-ink">
           {view === "month"
             ? format(cursor, "MMMM yyyy")
             : `${format(weekDays[0], "MMM d")} – ${format(weekDays[6], "MMM d")}, ${format(cursor, "yyyy")}`}
         </h2>
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-slate-300">
+          <div className="flex overflow-hidden rounded-lg border border-edge">
             {(["month", "week"] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
                 className={cx(
                   "px-3 py-1.5 text-xs font-medium capitalize",
-                  view === v ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+                  view === v ? "bg-brand text-on-brand" : "bg-card text-ink-soft hover:bg-card-soft"
                 )}
               >
                 {v}
@@ -164,16 +164,16 @@ export function CalendarPage() {
         </div>
       </div>
 
-      <div className="mb-3 flex items-center gap-4 text-[11px] text-slate-500">
+      <div className="mb-3 flex items-center gap-4 text-[11px] text-muted">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Profitable day</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-500" /> Loss day</span>
-        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-300" /> No trips</span>
+        <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-muted" /> No trips</span>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+      <div className="overflow-hidden rounded-2xl border border-edge bg-card shadow-card">
+        <div className="grid grid-cols-7 border-b border-edge bg-card-soft">
           {weekHeader.map((d) => (
-            <div key={d} className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <div key={d} className="px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide text-muted">
               {d}
             </div>
           ))}
@@ -190,7 +190,7 @@ export function CalendarPage() {
         wide
       >
         {selectedTrips.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-400">No trips on this day.</p>
+          <p className="py-8 text-center text-sm text-muted">No trips on this day.</p>
         ) : (
           <div className="space-y-2">
             {selectedTrips.map((t) => {
@@ -198,25 +198,25 @@ export function CalendarPage() {
               const vehicle = getVehicle(t, data);
               const profit = t.gross - t.total_expense;
               return (
-                <div key={t.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
+                <div key={t.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-edge/70 bg-card-soft px-3 py-2.5">
                   <div className="min-w-[90px]">
-                    <p className="text-xs font-semibold text-slate-800">{fmtTime(t.date_time)}</p>
-                    <p className="text-[11px] font-medium text-blue-600">{t.transportify_id}</p>
+                    <p className="text-xs font-semibold text-ink">{fmtTime(t.date_time)}</p>
+                    <p className="text-[11px] font-medium text-brand">{t.transportify_id}</p>
                   </div>
                   <div className="min-w-[110px]">
-                    <p className="text-sm font-medium text-slate-700">{driver?.name ?? "—"}</p>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-sm font-medium text-ink-soft">{driver?.name ?? "—"}</p>
+                    <p className="text-[11px] text-muted">
                       {vehicle?.plate_number} · {vehicle?.type}
                     </p>
                   </div>
                   <div className="hidden min-w-[160px] md:block">
-                    <p className="truncate text-xs text-slate-500">{t.pickup_address}</p>
-                    <p className="truncate text-xs text-slate-400">→ {t.dropoff_address}</p>
+                    <p className="truncate text-xs text-muted">{t.pickup_address}</p>
+                    <p className="truncate text-xs text-muted">→ {t.dropoff_address}</p>
                   </div>
                   <div className="ml-auto flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-xs text-slate-500">Gross {peso0(t.gross)}</p>
-                      <p className={cx("text-xs font-semibold", profit >= 0 ? "text-emerald-600" : "text-red-600")}>
+                      <p className="text-xs text-muted">Gross {peso0(t.gross)}</p>
+                      <p className={cx("text-xs font-semibold", profit >= 0 ? "text-emerald-400" : "text-red-400")}>
                         Profit {peso0(profit)}
                       </p>
                     </div>
@@ -228,9 +228,9 @@ export function CalendarPage() {
           </div>
         )}
         {selectedDay && selectedTrips.length > 0 && (
-          <p className="mt-3 text-right text-xs text-slate-400">
+          <p className="mt-3 text-right text-xs text-muted">
             Total profit for the day:{" "}
-            <strong className="text-slate-700">
+            <strong className="text-ink-soft">
               {peso0(selectedTrips.reduce((s, t) => s + (t.gross - t.total_expense), 0))}
             </strong>
           </p>

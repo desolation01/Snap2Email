@@ -51,19 +51,19 @@ export function Customers() {
       />
 
       <div className="relative mb-4 max-w-md">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by phone or name…"
-          className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="w-full rounded-lg border border-edge bg-card py-2 pl-9 pr-3 text-sm shadow-card placeholder:text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-ring"
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-edge bg-card shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead className="bg-slate-50">
+            <thead className="bg-card-soft">
               <tr>
                 <Th>Customer</Th>
                 <Th>Phone</Th>
@@ -72,20 +72,20 @@ export function Customers() {
                 <Th>Last Trip</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-edge/70">
               {customers.map((c) => {
                 const s = statsFor(c.phone_number);
                 return (
-                  <tr key={c.id} className="hover:bg-slate-50">
+                  <tr key={c.id} className="hover:bg-card-soft">
                     <Td>
-                      <button onClick={() => setViewing(c)} className="font-medium text-blue-600 hover:underline">
+                      <button onClick={() => setViewing(c)} className="font-medium text-brand hover:underline">
                         {c.name ?? "Unnamed customer"}
                       </button>
                     </Td>
-                    <Td className="text-slate-500">{c.phone_number}</Td>
+                    <Td className="text-muted">{c.phone_number}</Td>
                     <Td><Badge tone="blue">{s.count} trips</Badge></Td>
                     <Td className="font-medium">{peso0(s.gross)}</Td>
-                    <Td className="text-slate-500">{s.last ? fmtDate(s.last) : "—"}</Td>
+                    <Td className="text-muted">{s.last ? fmtDate(s.last) : "—"}</Td>
                   </tr>
                 );
               })}
@@ -99,11 +99,11 @@ export function Customers() {
 
       {viewing && (
         <Modal open onClose={() => setViewing(undefined)} title={viewing.name ?? viewing.phone_number} wide>
-          <p className="mb-4 text-sm text-slate-500">{viewing.phone_number}</p>
-          <h4 className="mb-2 text-sm font-semibold text-slate-700">Trip History ({tripsFor(viewing.phone_number).length})</h4>
+          <p className="mb-4 text-sm text-muted">{viewing.phone_number}</p>
+          <h4 className="mb-2 text-sm font-semibold text-ink-soft">Trip History ({tripsFor(viewing.phone_number).length})</h4>
           <div className="max-h-96 overflow-y-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-card-soft">
                 <tr>
                   <Th>Date</Th>
                   <Th>Transportify</Th>
@@ -113,17 +113,17 @@ export function Customers() {
                   <Th>Status</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-edge/70">
                 {tripsFor(viewing.phone_number).slice(0, 50).map((t) => (
                   <tr key={t.id}>
                     <Td>{fmtDate(t.date_time)}</Td>
-                    <Td className="text-blue-600">{t.transportify_id}</Td>
+                    <Td className="text-brand">{t.transportify_id}</Td>
                     <Td className="max-w-[260px]">
-                      <p className="truncate text-slate-600">{t.pickup_address}</p>
-                      <p className="truncate text-[11px] text-slate-400">→ {t.dropoff_address}</p>
+                      <p className="truncate text-ink-soft">{t.pickup_address}</p>
+                      <p className="truncate text-[11px] text-muted">→ {t.dropoff_address}</p>
                     </Td>
                     <Td>{peso0(t.gross)}</Td>
-                    <Td className={cx("font-medium", t.gross - t.total_expense >= 0 ? "text-emerald-600" : "text-red-600")}>
+                    <Td className={cx("font-medium", t.gross - t.total_expense >= 0 ? "text-emerald-400" : "text-red-400")}>
                       {peso0(t.gross - t.total_expense)}
                     </Td>
                     <Td>

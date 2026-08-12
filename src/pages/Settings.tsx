@@ -38,7 +38,7 @@ export function Settings() {
             </div>
             <div className="flex items-center gap-3">
               <Button onClick={saveCompany}>Save profile</Button>
-              {saved && <span className="text-xs font-medium text-emerald-600">Saved ✓</span>}
+              {saved && <span className="text-xs font-medium text-emerald-400">Saved ✓</span>}
             </div>
           </div>
         </Card>
@@ -62,12 +62,12 @@ export function Settings() {
             {data.vehicleTypes.map((v) => {
               const inUse = data.vehicles.some((veh) => veh.type === v);
               return (
-                <span key={v} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-700">
+                <span key={v} className="inline-flex items-center gap-1.5 rounded-lg bg-card-soft px-3 py-1.5 text-sm text-ink-soft">
                   {v}
                   {!inUse && (
                     <button
                       onClick={() => settingsActions.removeVehicleType(v)}
-                      className="text-slate-400 hover:text-red-500"
+                      className="text-muted hover:text-red-400"
                       title="Remove"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -77,7 +77,7 @@ export function Settings() {
               );
             })}
           </div>
-          <p className="mt-3 text-[11px] text-slate-400">Types already assigned to vehicles cannot be removed.</p>
+          <p className="mt-3 text-[11px] text-muted">Types already assigned to vehicles cannot be removed.</p>
         </Card>
       </div>
 
@@ -91,8 +91,8 @@ export function Settings() {
       <Card title="Danger Zone">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-800">Reset demo data</p>
-            <p className="text-xs text-slate-500">Restore the seeded dataset and discard all changes.</p>
+            <p className="text-sm font-medium text-ink">Reset demo data</p>
+            <p className="text-xs text-muted">Restore the seeded dataset and discard all changes.</p>
           </div>
           <Button variant="danger" onClick={() => setConfirmReset(true)}>
             <RotateCcw className="h-4 w-4" /> Reset data
@@ -101,10 +101,10 @@ export function Settings() {
       </Card>
 
       {confirmReset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-800">Reset all data?</h3>
-            <p className="mt-1 text-sm text-slate-500">This will erase all trips, employees, vehicles and settings you've added.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card p-5 shadow-card-hover">
+            <h3 className="text-base font-semibold text-ink">Reset all data?</h3>
+            <p className="mt-1 text-sm text-muted">This will erase all trips, employees, vehicles and settings you've added.</p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="secondary" onClick={() => setConfirmReset(false)}>Cancel</Button>
               <Button variant="danger" onClick={() => { resetData(); setConfirmReset(false); }}>Yes, reset</Button>
@@ -190,7 +190,7 @@ function CommissionRuleEditor({ role }: { role: "driver" | "helper" }) {
         )}
 
         <div>
-          <p className="mb-2 text-xs font-medium text-slate-600">Per Vehicle Type Overrides</p>
+          <p className="mb-2 text-xs font-medium text-ink-soft">Per Vehicle Type Overrides</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {data.vehicleTypes.map((t) => (
               <Field key={t} label={t}>
@@ -209,7 +209,7 @@ function CommissionRuleEditor({ role }: { role: "driver" | "helper" }) {
 
         {role === "driver" && (
           <div>
-            <p className="mb-2 text-xs font-medium text-slate-600">Per Employee Overrides</p>
+            <p className="mb-2 text-xs font-medium text-ink-soft">Per Employee Overrides</p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {drivers.map((d) => (
                 <Field key={d.id} label={d.name}>
@@ -276,8 +276,8 @@ function UserManagement() {
       }
     >
       {showForm && (
-        <form onSubmit={submit} className="mb-4 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2 lg:grid-cols-5">
-          {error && <div className="col-span-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</div>}
+        <form onSubmit={submit} className="mb-4 grid grid-cols-1 gap-3 rounded-lg border border-edge bg-card-soft p-4 sm:grid-cols-2 lg:grid-cols-5">
+          {error && <div className="col-span-full rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400">{error}</div>}
           <Field label="Name">
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
@@ -300,17 +300,17 @@ function UserManagement() {
         </form>
       )}
 
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-edge/70">
         {data.users.map((u) => (
           <div key={u.id} className="flex items-center gap-3 py-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-card-soft text-xs font-bold text-ink-soft">
               {u.name.slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className={cx("truncate text-sm font-medium", u.status === "inactive" ? "text-slate-400" : "text-slate-800")}>
+              <p className={cx("truncate text-sm font-medium", u.status === "inactive" ? "text-muted" : "text-ink")}>
                 {u.name}
               </p>
-              <p className="truncate text-xs text-slate-400">{u.email}</p>
+              <p className="truncate text-xs text-muted">{u.email}</p>
             </div>
             <Badge tone={u.role === "owner" ? "violet" : u.role === "accountant" ? "amber" : "blue"}>{roleLabel[u.role]}</Badge>
             <Badge tone={u.status === "active" ? "green" : "red"}>{u.status}</Badge>
@@ -319,8 +319,8 @@ function UserManagement() {
               className={cx(
                 "flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium ring-1",
                 u.status === "active"
-                  ? "text-slate-600 ring-slate-200 hover:bg-slate-50"
-                  : "text-emerald-600 ring-emerald-200 hover:bg-emerald-50"
+                  ? "text-ink-soft ring-edge hover:bg-card-soft"
+                  : "text-emerald-400 ring-emerald-400/30 hover:bg-emerald-500/10"
               )}
             >
               <Shield className="h-3.5 w-3.5" />
