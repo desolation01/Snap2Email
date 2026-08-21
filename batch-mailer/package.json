@@ -1,0 +1,32 @@
+{
+  "name": "snap2email",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n proxy,vite -c blue,green \"node server/server.js\" \"vite\"",
+    "build": "tsc -b && vite build",
+    "start": "node server/server.js & vite preview",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "dexie": "^4.4.5",
+    "mammoth": "^1.12.1",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "turndown": "^7.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@types/turndown": "^5.0.6",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^10.0.5",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}

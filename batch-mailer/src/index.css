@@ -1,0 +1,391 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────── */
+:root {
+  --paper: #f5f0eb;
+  --paper-dark: #ebe3d9;
+  --surface: #ffffff;
+  --border: #e5ddd5;
+  --border-strong: #d5c9bd;
+  --ink: #2c241b;
+  --ink-muted: #8a7e72;
+  --ink-faint: #b5a99d;
+  --stamp: #c0392b;
+  --stamp-light: #fdecea;
+  --navy: #1e3a5f;
+  --navy-light: #eaf0f8;
+  --leaf: #3a7d44;
+  --leaf-light: #eef6ef;
+  --gold: #b8860b;
+  --gold-light: #fef8e7;
+  --typewriter: 'IBM Plex Mono', 'Courier New', monospace;
+  --display: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Laid paper texture (vertical + horizontal lines) ───── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 28px, rgba(0,0,0,0.06) 28px 29px),
+    repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,0.05) 2px 3px);
+}
+
+/* ─── Watermark pattern ──────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.012;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 120px,
+    rgba(0,0,0,0.5) 120px 121px
+  );
+}
+
+@layer base {
+  html, body, #root {
+    @apply h-full;
+  }
+  body {
+    font-family: var(--sans);
+    background-color: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ─── Ruled notebook lines with red margin ───────────────── */
+.ruled {
+  position: relative;
+  background-image:
+    /* Red margin line */
+    linear-gradient(90deg, var(--stamp) 0 1px, transparent 1px),
+    /* Horizontal ruled lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 23px,
+      rgba(181, 169, 157, 0.2) 23px 24px
+    );
+  background-position: 28px 4px, 0 4px;
+  background-size: 100% 100%, 100% 100%;
+  padding-left: 40px !important;
+}
+
+/* ─── Utility classes ────────────────────────────────────── */
+.ink-well {
+  background-color: var(--paper);
+  border: 1px solid var(--border);
+}
+
+.file-card {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(44, 36, 27, 0.04);
+}
+
+/* Paperclip corner decoration */
+.file-card::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: 16px;
+  width: 12px;
+  height: 20px;
+  border: 1.5px solid var(--border-strong);
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+  background: var(--surface);
+  z-index: 1;
+}
+.file-card::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 20px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  z-index: 2;
+}
+
+/* ─── Hole punch marks ───────────────────────────────────── */
+.hole-punch {
+  position: relative;
+}
+.hole-punch::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 24px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--paper-dark);
+  border: 1px solid var(--border);
+  box-shadow: 0 28px 0 0 var(--paper-dark), 0 28px 0 1px var(--border);
+}
+.hole-punch::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 52px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--paper-dark);
+  border: 1px solid var(--border);
+}
+
+/* ─── Folded corner ──────────────────────────────────────── */
+.folded-corner {
+  position: relative;
+}
+.folded-corner::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 24px 24px;
+  border-color: transparent transparent var(--paper) transparent;
+  filter: drop-shadow(-1px -1px 1px rgba(0,0,0,0.06));
+}
+
+/* ─── Tape strip ─────────────────────────────────────────── */
+.tape {
+  position: relative;
+}
+.tape::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 48px;
+  height: 14px;
+  background: rgba(245, 240, 235, 0.6);
+  border: 1px solid rgba(213, 201, 189, 0.4);
+  border-radius: 1px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ─── Staple marks ───────────────────────────────────────── */
+.stapled {
+  position: relative;
+}
+.stapled::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 2px;
+  background: var(--ink-muted);
+  transform: rotate(-45deg);
+  box-shadow: 12px 12px 0 0 var(--ink-muted);
+  opacity: 0.5;
+  border-radius: 1px;
+}
+
+/* ─── Stamps ──────────────────────────────────────────────── */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--typewriter);
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  transform: rotate(-1deg);
+}
+.stamp-green { color: var(--leaf); background: var(--leaf-light); }
+.stamp-red { color: var(--stamp); background: var(--stamp-light); }
+.stamp-navy { color: var(--navy); background: var(--navy-light); }
+.stamp-gold { color: var(--gold); background: var(--gold-light); }
+.stamp-gray { color: var(--ink-muted); background: var(--surface); border-color: var(--border); }
+
+/* ─── Date stamp ──────────────────────────────────────────── */
+.date-stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--typewriter);
+  border: 1.5px solid var(--stamp);
+  color: var(--stamp);
+  background: var(--stamp-light);
+  border-radius: 1px;
+  transform: rotate(0.5deg);
+  line-height: 1.2;
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.date-stamp span:first-child { font-size: 0.6875rem; font-weight: 500; }
+
+/* ─── Folder tab ─────────────────────────────────────────── */
+.folder-tab {
+  position: relative;
+  font-family: var(--typewriter);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 6px 6px 0 0;
+}
+.folder-tab:hover { color: var(--ink); background: rgba(255,255,255,0.5); }
+.folder-tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border-strong);
+  z-index: 1;
+}
+
+/* ─── Index tab ──────────────────────────────────────────── */
+.index-tab {
+  position: absolute;
+  right: -1px;
+  top: 20px;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--typewriter);
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--navy-light);
+  border: 1px solid var(--border-strong);
+  border-right: none;
+  color: var(--navy);
+  border-radius: 2px 0 0 2px;
+  z-index: 2;
+}
+
+/* ─── Form elements ──────────────────────────────────────── */
+.field {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field:hover { border-color: var(--border-strong); }
+.field:focus { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1); }
+.field::placeholder { color: var(--ink-faint); }
+.field-mono { font-family: var(--typewriter); font-size: 0.75rem; }
+
+/* ─── Button styles ──────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-family: var(--sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--navy); color: white; border-color: var(--navy); }
+.btn-primary:hover:not(:disabled) { background: #162d4a; }
+.btn-secondary { background: var(--surface); color: var(--ink); border-color: var(--border); }
+.btn-secondary:hover:not(:disabled) { background: var(--paper); border-color: var(--border-strong); }
+.btn-stamp {
+  font-family: var(--typewriter); font-size: 0.6875rem;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  background: var(--stamp-light); color: var(--stamp);
+  border-color: var(--stamp); transform: rotate(-0.5deg);
+}
+.btn-stamp:hover:not(:disabled) { background: var(--stamp); color: white; }
+.btn-stamp:disabled { transform: none; }
+.btn-ghost { background: transparent; color: var(--ink-muted); border-color: transparent; }
+.btn-ghost:hover:not(:disabled) { color: var(--ink); background: var(--paper); }
+
+/* ─── Misc ────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); }
+
+/* ─── Mascot wiggle animation ────────────────────────────── */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(3deg); }
+  75% { transform: rotate(-3deg); }
+}
+.mascot-wiggle { animation: wiggle 3s ease-in-out infinite; }
+
+/* ─── Mascot bounce animation ────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.mascot-float { animation: float 4s ease-in-out infinite; }
+
+/* ─── Browser surfaces ──────────────────────────────────── */
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Text selection */
+::selection { background: var(--navy-light); color: var(--navy); }
+::-moz-selection { background: var(--navy-light); color: var(--navy); }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+/* Caret */
+input, textarea, [contenteditable] { caret-color: var(--navy); }
+
+/* Entrance animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.entrance { animation: fadeUp 0.6s ease-out both; }
+.entrance-delay-1 { animation-delay: 0.1s; }
+.entrance-delay-2 { animation-delay: 0.2s; }
+.entrance-delay-3 { animation-delay: 0.3s; }
+
+/* ─── Selection ──────────────────────────────────────────── */
+::selection { background: var(--navy-light); color: var(--navy); }
+
+/* ─── Focus ring ─────────────────────────────────────────── */
+*:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
