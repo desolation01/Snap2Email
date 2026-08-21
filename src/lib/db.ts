@@ -79,13 +79,14 @@ The fields below are reference for what to include in the email body:
 - LinkedIn Variant: skip
 - Suggested Follow-up: skip`
 
-const SETTINGS_VERSION = 3
+const SETTINGS_VERSION = 4
 
 const DEFAULT_SETTINGS: AppSettings = {
   id: 'default',
   aiInstructions: DEFAULT_INSTRUCTIONS,
   senderName: '',
   senderEmail: '',
+  portfolioUrl: '',
   settingsVersion: SETTINGS_VERSION,
 }
 

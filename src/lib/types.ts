@@ -4,6 +4,7 @@ export interface AppSettings {
   aiInstructions: string
   senderName: string
   senderEmail: string
+  portfolioUrl: string
   resumeMarkdown?: string
   resumeFileName?: string
   resumeFileData?: string   // base64-encoded original file

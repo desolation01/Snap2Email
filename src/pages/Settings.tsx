@@ -237,6 +237,14 @@ export default function Settings() {
               <input type="email" value={settings.senderEmail} onChange={(e) => update('senderEmail', e.target.value)}
                 placeholder="e.g. john@example.com" className="field" />
             </div>
+            <div>
+              <label className="block text-xs font-medium text-[var(--ink)] mb-1">Your Portfolio</label>
+              <input type="url" value={settings.portfolioUrl} onChange={(e) => update('portfolioUrl', e.target.value)}
+                placeholder="e.g. https://your-portfolio.com" className="field" />
+              <p className="text-xs text-[var(--ink-muted)] mt-1">
+                The AI includes this link in the email signature.
+              </p>
+            </div>
           </div>
         </div>
 

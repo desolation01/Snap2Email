@@ -341,6 +341,10 @@ CRITICAL RULE — Follow the writing style instructions below exactly. They over
 You MUST follow these writing style instructions:
 ${settings.aiInstructions ? settings.aiInstructions.slice(0, 1500) : '(none provided)'}
 
+The user's portfolio URL is: ${settings.portfolioUrl || '(not provided — omit from signature)'}
+
+Use this portfolio URL in the email signature when one is provided. If none is provided, omit the portfolio line from the signature entirely.
+
 You must return the result as valid JSON. Do ALL of the following:
 
 1. Identify the recipient's email address and name from the extracted job posting text.
