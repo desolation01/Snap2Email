@@ -39,3 +39,6 @@ dist-ssr
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Other projects
+trucking-system/
