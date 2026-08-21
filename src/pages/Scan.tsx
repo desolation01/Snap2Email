@@ -784,6 +784,11 @@ Generate a personalized outreach email specifically for the "${jobTitle}" role.`
           <p className="text-xs text-[var(--ink-faint)] mt-1">
             or press Ctrl+V to paste from clipboard
           </p>
+          {!gmailConnected && (
+            <p className="text-xs text-[var(--stamp)] mt-3">
+              Sign in with Gmail above to enable scanning
+            </p>
+          )}
           <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={handleFileSelect} />
         </div>
       ) : (
@@ -810,7 +815,7 @@ Generate a personalized outreach email specifically for the "${jobTitle}" role.`
             <div className="flex gap-2">
               <button
                 onClick={() => handleScan('review')}
-                disabled={!aiConfigured || phase === 'scanning' || phase === 'sending'}
+                disabled={!aiConfigured || !gmailConnected || phase === 'scanning' || phase === 'sending'}
                 className="btn btn-secondary flex-1"
               >
                 {phase === 'scanning' || phase === 'sending' ? (
@@ -821,7 +826,7 @@ Generate a personalized outreach email specifically for the "${jobTitle}" role.`
               </button>
               <button
                 onClick={() => handleScan('auto')}
-                disabled={!aiConfigured || phase === 'scanning' || phase === 'sending'}
+                disabled={!aiConfigured || !gmailConnected || phase === 'scanning' || phase === 'sending'}
                 className="btn btn-primary flex-1"
               >
                 {phase === 'scanning' || phase === 'sending' ? (
@@ -834,6 +839,11 @@ Generate a personalized outreach email specifically for the "${jobTitle}" role.`
             {!aiConfigured && (
               <p className="text-xs text-[var(--stamp)] text-center mt-2">
                 Configure your AI API key in Settings first
+              </p>
+            )}
+            {!gmailConnected && (
+              <p className="text-xs text-[var(--stamp)] text-center mt-2">
+                Sign in with Gmail above to enable scanning
               </p>
             )}
           </div>
