@@ -357,29 +357,16 @@ Use this portfolio URL in the email signature when one is provided. If none is p
 5. The email signature MUST use the sender's actual full name as written in the resume. Never use "[Full Name]" as a placeholder.
 6. Every claim in the email body must be directly verifiable from the resume text. When in doubt, omit the claim.
 
-You must return the result as valid JSON. Do ALL of the following:
+You must return the result as plain text fields. Do NOT use JSON. Return exactly these fields, each on its own line, with no extra commentary:
 
-1. Identify the recipient's email address and name from the extracted job posting text.
-2. List all job positions found, their qualifications, a matchScore (0-100), and short matchReasons.
-3. Select the best matching position based on the resume.
-4. Generate a complete outreach email (subject + body) tailored to the best match.
+Recruiter Name: [name or "Hiring Manager"]
+Recruiter Email: [email or "none found"]
+Positions Found: [comma-separated list of all job titles found in the posting]
+Chosen Role: [title of the best matching position]
+Subject: [email subject line]
+Email Body: [full email body with signature]
 
-The JSON output format below is MANDATORY — the app will crash if you don't return valid JSON. Follow the writing style instructions above for the email content, subject line, and signature, but return ONLY this JSON structure, nothing else:
-
-{
-  "recipientEmail": "email or empty string",
-  "recipientName": "name or 'Hiring Manager'",
-  "jobPositions": [
-    { "title": "...", "qualifications": ["..."], "matchScore": 85, "matchReasons": ["...", "..."] }
-  ],
-  "bestMatch": { "title": "...", "qualifications": ["..."], "matchScore": 92, "matchReasons": ["..."] },
-  "outreachEmail": {
-    "subject": "Subject line (3-7 words, under 50 chars)",
-    "body": "Full email body with signature"
-  }
-}
-
-The outreachEmail.body should include the full email with signature (Best regards, name, etc.) as specified in the instructions. Do NOT output the instructions' text format — only this JSON.`
+The email body must include the full email with signature. Do not wrap in markdown or code blocks.`
 
       const userContent = `Here is the extracted text from the job posting screenshot:\n\n${extractedText}\n${resumeSection}`
 
@@ -396,15 +383,38 @@ The outreachEmail.body should include the full email with signature (Best regard
         )
       })
 
-      const jsonStr = fullResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
-      const parsed = JSON.parse(jsonStr) as ScanResult
+      // Parse plain text fields from AI response
+      const extractField = (label: string) => {
+        const regex = new RegExp(`${label}:\\s*(.+?)(?:\\n\\n|\\n(?=[A-Z][a-z]+\\s*:)|$)`, 's')
+        const match = fullResponse.match(regex)
+        return match ? match[1].trim() : ''
+      }
 
-      if (!parsed.outreachEmail?.subject || !parsed.outreachEmail?.body) {
+      const recipientName = extractField('Recruiter Name') || 'Hiring Manager'
+      const recipientEmail = extractField('Recruiter Email')
+      const positionsFound = extractField('Positions Found')
+      const chosenRole = extractField('Chosen Role')
+      const emailSubject = extractField('Subject')
+      const emailBody = extractField('Email Body')
+
+      if (!emailSubject || !emailBody) {
         throw new Error('AI response missing required email fields')
       }
 
+      const jobPositions = positionsFound
+        ? positionsFound.split(',').map(t => ({ title: t.trim(), qualifications: [], matchScore: 0, matchReasons: [] }))
+        : []
+
+      const parsed: ScanResult = {
+        recipientEmail: recipientEmail === 'none found' ? '' : recipientEmail,
+        recipientName,
+        jobPositions,
+        bestMatch: chosenRole ? { title: chosenRole, qualifications: [], matchScore: 0, matchReasons: [] } : null,
+        outreachEmail: { subject: emailSubject, body: emailBody },
+      }
+
       setResult(parsed)
-      setSelectedJobTitle(parsed.bestMatch?.title || null)
+      setSelectedJobTitle(chosenRole || null)
       setMode(scanMode)
 
       // If review mode, fill editable fields and stop
@@ -558,14 +568,12 @@ Use this portfolio URL in the email signature when one is provided. If none is p
 5. The email signature MUST use the sender's actual full name as written in the resume. Never use "[Full Name]" as a placeholder.
 6. Every claim in the email body must be directly verifiable from the resume text. When in doubt, omit the claim.
 
-Return ONLY this JSON — no other text:
+Return ONLY these two fields, plain text, each on its own line, with no extra commentary:
 
-{
-  "subject": "Subject line (3-7 words, under 50 chars)",
-  "body": "Full email body with signature"
-}
+Subject: [email subject line]
+Email Body: [full email body with signature]
 
-The subject should be tailored to the specific role. The body must include the full email with signature.`
+The subject should be tailored to the specific role. The body must include the full email with signature. Do not wrap in markdown or code blocks.`
 
       const userContent = `The target job role is: ${jobTitle}
 
@@ -586,23 +594,30 @@ Generate a personalized outreach email specifically for the "${jobTitle}" role.`
         )
       })
 
-      const jsonStr = fullResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
-      const email = JSON.parse(jsonStr)
+      // Parse plain text fields from AI response
+      const extractField = (label: string) => {
+        const regex = new RegExp(`${label}:\\s*(.+?)(?:\\n\\n|\\n(?=[A-Z][a-z]+\\s*:)|$)`, 's')
+        const match = fullResponse.match(regex)
+        return match ? match[1].trim() : ''
+      }
 
-      if (!email.subject || !email.body) {
+      const emailSubject = extractField('Subject')
+      const emailBody = extractField('Email Body')
+
+      if (!emailSubject || !emailBody) {
         throw new Error('AI response missing required email fields')
       }
 
       setResult(prev => prev ? {
         ...prev,
         bestMatch: prev.jobPositions.find(jp => jp.title === jobTitle) || prev.bestMatch,
-        outreachEmail: { subject: email.subject, body: email.body },
+        outreachEmail: { subject: emailSubject, body: emailBody },
       } : prev)
 
       // If in review mode, update the editable fields
       if (mode === 'review') {
-        setEditSubject(email.subject)
-        setEditBody(email.body)
+        setEditSubject(emailSubject)
+        setEditBody(emailBody)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate email for this role')
