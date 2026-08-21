@@ -5,6 +5,7 @@ export interface AppSettings {
   senderName: string
   senderEmail: string
   portfolioUrl: string
+  isGraduated: boolean
   resumeMarkdown?: string
   resumeFileName?: string
   resumeFileData?: string   // base64-encoded original file

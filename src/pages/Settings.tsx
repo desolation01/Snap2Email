@@ -174,7 +174,7 @@ export default function Settings() {
     setResumeSuccess('Resume removed')
   }
 
-  function update(key: keyof AppSettings, value: string) {
+  function update(key: keyof AppSettings, value: string | boolean) {
     if (!settings) return
     setSettings({ ...settings, [key]: value })
   }
@@ -244,6 +244,25 @@ export default function Settings() {
               <p className="text-xs text-[var(--ink-muted)] mt-1">
                 The AI includes this link in the email signature.
               </p>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <div>
+                <label className="block text-xs font-medium text-[var(--ink)]">Graduated</label>
+                <p className="text-xs text-[var(--ink-muted)] mt-0.5">Tells the AI whether you have already graduated</p>
+              </div>
+              <button
+                onClick={() => update('isGraduated', !settings.isGraduated)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  settings.isGraduated ? 'bg-[var(--leaf)]' : 'bg-[var(--border-strong)]'
+                }`}
+                role="switch"
+                aria-checked={settings.isGraduated}
+                aria-label="Toggle graduation status"
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
+                  settings.isGraduated ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
             </div>
           </div>
         </div>

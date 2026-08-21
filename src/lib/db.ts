@@ -64,7 +64,7 @@ Do not bury the portfolio link in the body unless the role is highly visual/crea
 ### Ground-truth rules (never violate):
 - The sender's resume is provided as part of the prompt. Extract the sender's name, degree, and graduation status DIRECTLY from the resume text — do not use any other source.
 - If the resume says "Information Technology" do not rewrite it as "Computer Science" or any other field.
-- If the resume lists a graduation year, the sender has ALREADY graduated — do not say "currently pursuing" or "student."
+- The user sets their graduation status explicitly in the settings. Obey that status exactly — do not try to guess it from the resume.
 - If the resume does not mention a specific qualification, do not claim it. Never invent or assume.
 - The email signature must use the sender's actual full name from the resume. Never use placeholder text like "[Full Name]".
 
@@ -86,7 +86,7 @@ The fields below are reference for what to include in the email body:
 - LinkedIn Variant: skip
 - Suggested Follow-up: skip`
 
-const SETTINGS_VERSION = 4
+const SETTINGS_VERSION = 5
 
 const DEFAULT_SETTINGS: AppSettings = {
   id: 'default',
@@ -94,6 +94,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   senderName: '',
   senderEmail: '',
   portfolioUrl: '',
+  isGraduated: true,
   settingsVersion: SETTINGS_VERSION,
 }
 

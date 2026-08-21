@@ -352,7 +352,7 @@ Use this portfolio URL in the email signature when one is provided. If none is p
 ### CRITICAL GROUNDING RULES — Violating these will cause factual errors:
 1. The user's resume is provided below. You MUST extract the sender's full name, degree, and graduation status DIRECTLY from that resume text. Do not use any other source.
 2. If the resume says "Bachelor of Science in Information Technology", you MUST write "Information Technology" — never change it to "Computer Science" or anything else.
-3. If the resume lists a graduation year, the user has ALREADY graduated. Do NOT say "currently pursuing", "student", or "expected to graduate."
+3. The user's graduation status is: ${settings.isGraduated ? 'ALREADY GRADUATED' : 'STILL STUDYING / NOT YET GRADUATED'}. This is set by the user, not guessed from the resume. Obey this exactly.
 4. If the resume does not mention a specific fact, do NOT mention it at all. Never invent or assume qualifications.
 5. The email signature MUST use the sender's actual full name as written in the resume. Never use "[Full Name]" as a placeholder.
 6. Every claim in the email body must be directly verifiable from the resume text. When in doubt, omit the claim.
@@ -553,7 +553,7 @@ Use this portfolio URL in the email signature when one is provided. If none is p
 ### CRITICAL GROUNDING RULES — Violating these will cause factual errors:
 1. The user's resume is provided below. You MUST extract the sender's full name, degree, and graduation status DIRECTLY from that resume text. Do not use any other source.
 2. If the resume says "Bachelor of Science in Information Technology", you MUST write "Information Technology" — never change it to "Computer Science" or anything else.
-3. If the resume lists a graduation year, the user has ALREADY graduated. Do NOT say "currently pursuing", "student", or "expected to graduate."
+3. The user's graduation status is: ${settings.isGraduated ? 'ALREADY GRADUATED' : 'STILL STUDYING / NOT YET GRADUATED'}. This is set by the user, not guessed from the resume. Obey this exactly.
 4. If the resume does not mention a specific fact, do NOT mention it at all. Never invent or assume qualifications.
 5. The email signature MUST use the sender's actual full name as written in the resume. Never use "[Full Name]" as a placeholder.
 6. Every claim in the email body must be directly verifiable from the resume text. When in doubt, omit the claim.
