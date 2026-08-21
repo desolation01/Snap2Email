@@ -52,26 +52,47 @@ const DEFAULT_SETTINGS: AppSettings = {
   settingsVersion: SETTINGS_VERSION,
 }
 
-export async function getSettings(): Promise<AppSettings> {
-  const settings = await db.settings.get('default')
-  if (settings) {
-    // If stored version is stale or instructions are empty, migrate and persist
-    if (!settings.aiInstructions || settings.settingsVersion !== SETTINGS_VERSION) {
-      settings.aiInstructions = DEFAULT_INSTRUCTIONS
-      settings.settingsVersion = SETTINGS_VERSION
-      await db.settings.put(settings)
-    }
-    return settings
-  }
+// ─── In-memory cache ──────────────────────────────────────────
+let settingsCache: AppSettings | null = null
+let settingsPromise: Promise<AppSettings> | null = null
 
-  await db.settings.put(DEFAULT_SETTINGS)
-  return DEFAULT_SETTINGS
+export async function getSettings(): Promise<AppSettings> {
+  // Return cached value immediately if available
+  if (settingsCache) return settingsCache
+
+  // Deduplicate concurrent calls
+  if (settingsPromise) return settingsPromise
+
+  settingsPromise = (async () => {
+    const settings = await db.settings.get('default')
+    if (settings) {
+      // If stored version is stale or instructions are empty, migrate and persist
+      if (!settings.aiInstructions || settings.settingsVersion !== SETTINGS_VERSION) {
+        settings.aiInstructions = DEFAULT_INSTRUCTIONS
+        settings.settingsVersion = SETTINGS_VERSION
+        await db.settings.put(settings)
+      }
+      settingsCache = settings
+      return settings
+    }
+
+    await db.settings.put(DEFAULT_SETTINGS)
+    settingsCache = DEFAULT_SETTINGS
+    return DEFAULT_SETTINGS
+  })()
+
+  try {
+    return await settingsPromise
+  } finally {
+    settingsPromise = null
+  }
 }
 
 export async function saveSettings(partial: Partial<AppSettings>): Promise<AppSettings> {
   const current = await getSettings()
   const updated = { ...current, ...partial, id: 'default', settingsVersion: SETTINGS_VERSION }
   await db.settings.put(updated)
+  settingsCache = updated  // Update cache immediately
   return updated
 }
 
