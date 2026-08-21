@@ -180,6 +180,9 @@ export default function Home() {
   const [editBody, setEditBody] = useState('')
   const [aiConfigured, setAiConfigured] = useState(false)
   const [validationModal, setValidationModal] = useState<{ title: string; message: string } | null>(null)
+  const [selectedJobTitle, setSelectedJobTitle] = useState<string | null>(null)
+  const [regeneratingEmail, setRegeneratingEmail] = useState(false)
+  const [cachedExtractedText, setCachedExtractedText] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dropRef = useRef<HTMLDivElement>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -329,6 +332,7 @@ export default function Home() {
     try {
       // Stage 1: Extract text from image using cheap vision model
       const extractedText = await visionExtract(droppedImage)
+      setCachedExtractedText(extractedText)
 
       // Stage 2: Send extracted text + resume to reasoning model
       const resumeSection = settings.resumeMarkdown
@@ -392,6 +396,7 @@ The outreachEmail.body should include the full email with signature (Best regard
       }
 
       setResult(parsed)
+      setSelectedJobTitle(parsed.bestMatch?.title || null)
       setMode(scanMode)
 
       // If review mode, fill editable fields and stop
@@ -508,6 +513,85 @@ The outreachEmail.body should include the full email with signature (Best regard
       setSendMsg({ type: 'error', text: err instanceof Error ? err.message : 'Failed to send email' })
     } finally {
       setSendingEmail(false)
+    }
+  }
+
+  async function handleSelectPosition(jobTitle: string) {
+    if (!result || !settings || !cachedExtractedText || regeneratingEmail) return
+    if (jobTitle === selectedJobTitle) return
+
+    setSelectedJobTitle(jobTitle)
+    setRegeneratingEmail(true)
+    setError('')
+
+    abortRef.current = new AbortController()
+    const signal = abortRef.current.signal
+
+    try {
+      const resumeSection = settings.resumeMarkdown
+        ? `\n\n---\nTHE USER'S RESUME:\n${settings.resumeMarkdown}`
+        : '\n\n---\nNOTE: No resume has been uploaded yet.'
+
+      const systemPrompt = `You are an expert job application assistant. Generate a tailored outreach email for the SPECIFIC job role listed below.
+
+CRITICAL RULE — Follow the writing style instructions below exactly. They override everything else.
+You MUST follow these writing style instructions:
+${settings.aiInstructions ? settings.aiInstructions.slice(0, 1500) : '(none provided)'}
+
+The user's portfolio URL is: ${settings.portfolioUrl || '(not provided — omit from signature)'}
+
+Use this portfolio URL in the email signature when one is provided. If none is provided, omit the portfolio line from the signature entirely.
+
+Return ONLY this JSON — no other text:
+
+{
+  "subject": "Subject line (3-7 words, under 50 chars)",
+  "body": "Full email body with signature"
+}
+
+The subject should be tailored to the specific role. The body must include the full email with signature.`
+
+      const userContent = `The target job role is: ${jobTitle}
+
+Here is the extracted text from the job posting screenshot:\n\n${cachedExtractedText}${resumeSection}
+
+Generate a personalized outreach email specifically for the "${jobTitle}" role.`
+
+      const fullResponse = await new Promise<string>((resolve, reject) => {
+        streamChatCompletion(
+          [{ role: 'system', content: systemPrompt }, { role: 'user', content: userContent }],
+          {
+            onToken: () => {},
+            onDone: (fullText) => resolve(fullText),
+            onError: (err) => reject(err),
+          },
+          REASONING_MODEL,
+          signal,
+        )
+      })
+
+      const jsonStr = fullResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+      const email = JSON.parse(jsonStr)
+
+      if (!email.subject || !email.body) {
+        throw new Error('AI response missing required email fields')
+      }
+
+      setResult(prev => prev ? {
+        ...prev,
+        bestMatch: prev.jobPositions.find(jp => jp.title === jobTitle) || prev.bestMatch,
+        outreachEmail: { subject: email.subject, body: email.body },
+      } : prev)
+
+      // If in review mode, update the editable fields
+      if (mode === 'review') {
+        setEditSubject(email.subject)
+        setEditBody(email.body)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate email for this role')
+    } finally {
+      setRegeneratingEmail(false)
     }
   }
 
@@ -815,11 +899,25 @@ The outreachEmail.body should include the full email with signature (Best regard
                 <PaperclipIcon /> Positions
             </p>
             <div className="space-y-3">
-              {result.jobPositions.map((jp, i) => (
-                <div key={i} className={`p-4 ${result.bestMatch?.title === jp.title ? 'bg-[var(--leaf-light)] border border-[var(--leaf)]' : 'bg-[var(--paper)]'}`}>
+              {result.jobPositions.map((jp, i) => {
+                const isSelected = selectedJobTitle === jp.title
+                const isRegenerating = isSelected && regeneratingEmail
+                return (
+                <div key={i}
+                  onClick={() => !regeneratingEmail && handleSelectPosition(jp.title)}
+                  className={`p-4 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-[var(--navy-light)] border border-[var(--navy)] ring-1 ring-[var(--navy)]'
+                      : 'bg-[var(--paper)] hover:bg-[var(--surface)] border border-transparent hover:border-[var(--border)]'
+                  }`}>
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="text-sm font-medium text-[var(--ink)]">{jp.title}</h3>
                     <div className="flex items-center gap-2">
+                      {isRegenerating && (
+                        <span className="flex items-center gap-1 text-xs font-mono text-[var(--navy)]">
+                          <IconSpinner /> Switching...
+                        </span>
+                      )}
                       {jp.matchScore !== undefined && (
                         <span className={`text-xs font-mono font-medium px-2 py-0.5 rounded-sm ${
                           jp.matchScore >= 80 ? 'bg-[var(--leaf-light)] text-[var(--leaf)]' :
@@ -829,8 +927,8 @@ The outreachEmail.body should include the full email with signature (Best regard
                           {jp.matchScore}% match
                         </span>
                       )}
-                      {result.bestMatch?.title === jp.title && (
-                        <span className="stamp stamp-green">Best Match</span>
+                      {isSelected && (
+                        <span className="stamp stamp-navy">Selected</span>
                       )}
                     </div>
                   </div>
@@ -852,7 +950,7 @@ The outreachEmail.body should include the full email with signature (Best regard
                     ))}
                   </ul>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
 
@@ -862,8 +960,14 @@ The outreachEmail.body should include the full email with signature (Best regard
               <div className="p-5 border-b border-[var(--border)]">
                 <p className="text-xs font-mono text-[var(--ink-faint)] uppercase tracking-wider flex items-center gap-1.5">
                   <PaperclipIcon /> <IconMail /> Review &amp; Send
+                  {selectedJobTitle && <span className="text-[var(--ink-muted)] normal-case">— {selectedJobTitle}</span>}
                 </p>
               </div>
+              {regeneratingEmail ? (
+                <div className="p-10 text-center text-[var(--ink-muted)]">
+                  <IconSpinner /> Regenerating email for selected role...
+                </div>
+              ) : (
               <div className="p-5 space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-[var(--ink)] mb-1">Recipient Email</label>
@@ -895,14 +999,22 @@ The outreachEmail.body should include the full email with signature (Best regard
                   </p>
                 )}
               </div>
+              )}
             </div>
-          ) : (
-          /* Generated email — read-only result */
+          ) : regeneratingEmail ? (
+                      <div className="file-card overflow-hidden hole-punch tape">
+                        <div className="p-10 text-center text-[var(--ink-muted)]">
+                          <IconSpinner /> Regenerating email for selected role...
+                        </div>
+                      </div>
+                    ) : (
+                    /* Generated email — read-only result */
           <div className="file-card overflow-hidden hole-punch tape">
             <div className="p-5 border-b border-[var(--border)]">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-mono text-[var(--ink-faint)] uppercase tracking-wider flex items-center gap-1.5">
                   <PaperclipIcon /> <IconMail /> Email
+                  {selectedJobTitle && <span className="text-[var(--ink-muted)] normal-case">— {selectedJobTitle}</span>}
                 </p>
                 <button
                   onClick={handleCopy}
