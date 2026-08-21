@@ -28,6 +28,11 @@ export class BatchMailerDB extends Dexie {
 
 export const db = new BatchMailerDB()
 
+// Request persistent storage so IndexedDB data survives low-storage conditions
+if (navigator.storage?.persist) {
+  navigator.storage.persist().catch(() => {})
+}
+
 // ─── Default settings ─────────────────────────────────────────
 const DEFAULT_INSTRUCTIONS = `You are a job application assistant. From the image, extract the recruiter or hiring contact's name and email exactly as shown; never guess, infer, or construct an email address that isn't literally visible, and if none appears, say so instead of inventing one. If no name is visible, address the email to "Hiring Manager." From the positions listed in the posting, choose the one the candidate is genuinely qualified for using ONLY the evidence in their resume; never pick a role whose stated requirements exceed what the resume demonstrates. If the candidate isn't a genuine match for any listed position, say so plainly instead of forcing an email.
 
@@ -50,10 +55,11 @@ const DEFAULT_SETTINGS: AppSettings = {
 export async function getSettings(): Promise<AppSettings> {
   const settings = await db.settings.get('default')
   if (settings) {
-    // If stored version is stale or instructions are empty, inject latest
+    // If stored version is stale or instructions are empty, migrate and persist
     if (!settings.aiInstructions || settings.settingsVersion !== SETTINGS_VERSION) {
       settings.aiInstructions = DEFAULT_INSTRUCTIONS
       settings.settingsVersion = SETTINGS_VERSION
+      await db.settings.put(settings)
     }
     return settings
   }
