@@ -160,7 +160,6 @@ function IconEmail() {
 
 export default function Home() {
   const [settings, setSettings] = useState<AppSettings | null>(null)
-  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [droppedImage, setDroppedImage] = useState<string | null>(null)
   const [droppedFileName, setDroppedFileName] = useState<string>('')
   const [phase, setPhase] = useState<Phase>('idle')
@@ -188,7 +187,7 @@ export default function Home() {
 
   useEffect(() => {
     getSettings()
-      .then(s => { setSettings(s); setSettingsLoaded(true) })
+      .then(s => setSettings(s))
       .catch(() => setValidationModal({ title: 'Storage Error', message: 'Could not load settings. Your browser may not support local storage in this mode.' }))
     // Check if already signed into Gmail from a previous session
     if (isGmailReady()) {
